@@ -5,6 +5,9 @@
 #ifndef BASICLANG_PARSER_H
 #define BASICLANG_PARSER_H
 
+#include <set>
+#include <unordered_set>
+
 #include "ast.h"
 #include "bytecode.h"
 #include "lexer.h"
@@ -16,6 +19,9 @@ namespace Parser {
         std::optional<Lexer::Token> m_Current;
         std::optional<Lexer::Token> m_Peek;
 
+        std::unordered_map<std::string_view, uint64_t> labels;
+        std::unordered_map<std::string_view, uint64_t> vars;
+
         [[nodiscard]] Lexer::Token Current() const;
 
         [[nodiscard]] Lexer::Token Peek() const;
@@ -26,13 +32,30 @@ namespace Parser {
         /// advances if the current token is of the given type, returns false otherwise
         bool MatchCurrentToken(Lexer::TokenType);
 
+        void AssertCurrentToken(Lexer::TokenType t) const;
+
+
         /// advances if the peek token is of the given type, returns false otherwise
         bool MatchPeekToken(Lexer::TokenType);
 
     public:
-        std::vector<vm::ByteCodeInstruction> prefixParse(Lexer::TokenType);
 
-        std::vector<vm::ByteCodeInstruction> parseExpression();
+        vm::Vm vm{};
+
+        void prefixParse(Lexer::TokenType);
+
+        void parseExpression();
+
+        uint64_t AddLabel(std::string_view name);
+        uint64_t AddVar(std::string_view name);
+
+        void parseGoto();
+
+        void parseAssign();
+
+        void parseLabel();
+
+        void parseStatement();
 
         explicit Parser(Lexer::Lexer
             &lexer) : m_Lexer(lexer) {

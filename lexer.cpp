@@ -74,7 +74,7 @@ static constexpr int makeNumber(std::string_view source) {
 /// @return the length of the identifier
 static constexpr int makeId(std::string_view source) {
     int res = 0;
-    static constexpr std::string_view view{"+-*/&^|()\";:'<>=~%{}"};
+    static constexpr std::string_view view{"+-*/&^|()\";:'<>=~%{}!"};
     while (!source.empty() && !view.contains(source[0]) && !std::isspace(source[0])) {
         res++;
         source.remove_prefix(1);
@@ -131,11 +131,8 @@ tokenize:
         case '%': return makeToken(TokenType::percent, source.substr(0, 1));
         case '|': return makeToken(TokenType::pipe, source.substr(0, 1));
         case '&': return makeToken(TokenType::amp, source.substr(0, 1));
-        case ':':
-            if (source.starts_with("::")) {
-                return makeToken(TokenType::format, source.substr(0, 2));
-            }
-            return makeToken(TokenType::colon, source.substr(0, 1));
+        case ':': return makeToken(TokenType::colon, source.substr(0, 1));
+        case '!': return makeToken(TokenType::format, source.substr(0, 1));
         case '^': return makeToken(TokenType::caret, source.substr(0, 1));
         case '\n':
             if (lineBatch) (*lineBatch)++;

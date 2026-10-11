@@ -8,30 +8,6 @@
 #include <format>
 #include <vector>
 
-namespace Lexer::Labels {
-    struct Label {
-        const char *position;
-        const char *continuation;
-
-        [[nodiscard]] std::string_view Name() const {
-            return {position, continuation};
-        }
-    };
-
-
-
-}
-
-template<>
-struct std::formatter<Lexer::Labels::Label> {
-    static constexpr auto parse(std::format_parse_context &ctx) {
-        return ctx.begin();
-    }
-
-    static auto format(const Lexer::Labels::Label &l, std::format_context &ctx) {
-        return std::format_to(ctx.out(), "Label({})", l.Name());
-    }
-};
 
 namespace Lexer {
     enum class TokenType: unsigned char {
@@ -66,7 +42,7 @@ namespace Lexer {
         id,
         number,
         colon,
-        format, // the :: operator, used in out strings and in strings.
+        format, // the ! operator, used in out strings and in strings.
         newline,
         label,
     };
