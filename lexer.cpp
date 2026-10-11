@@ -200,5 +200,10 @@ Lexer::Token Lexer::Lexer::Next() {
     if (rawToken.Type == TokenType::str && rawToken.Literal[0] == '}') m_Interpolations--;
 
     m_Source.remove_prefix(rawToken.Literal.end() - m_Source.begin());
+
+    if (rawToken.Type == TokenType::interpolation || rawToken.Type == TokenType::str) {
+        rawToken.Literal.remove_suffix(1);
+        rawToken.Literal.remove_prefix(1);
+    }
     return rawToken;
 }

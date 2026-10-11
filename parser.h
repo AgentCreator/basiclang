@@ -60,6 +60,8 @@ namespace Parser {
 
         void parseIf();
 
+        void parseOut();
+
         void parseStatement();
 
         void parseProgram();

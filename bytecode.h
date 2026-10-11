@@ -42,7 +42,7 @@ namespace vm {
         virtual ~BytecodeData() = default;
     };
     struct StringData: BytecodeData {
-        std::string_view s;
+        std::string s;
 
         StringData() = default;
 

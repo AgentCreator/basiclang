@@ -40,6 +40,7 @@ namespace Parser {
                                       static_cast<int>(Current().Type)
         );
     }
+
     void Parser::AssertPeekToken(Lexer::TokenType t) const {
         if (auto cur = Peek(); cur.Type == t) {
             return;
@@ -121,6 +122,7 @@ void Parser::Parser::runInstructionFromTokenType(Lexer::TokenType t) {
             break;
         default:
 
+
     }
 }
 
@@ -174,7 +176,8 @@ void Parser::Parser::prefixParse() {
             parseExpression();
             AssertPeekToken(Lexer::TokenType::rPar);
             Advance();
-        } break;
+        }
+        break;
         default:
             logger.Log<Log::Level::Error>("Unknown Expression");
     }
@@ -269,6 +272,31 @@ void Parser::Parser::parseIf() {
     vm.AddLabel(label);
 }
 
+void Parser::Parser::parseOut() {
+    AssertCurrentToken(Lexer::TokenType::Out);
+    Advance();
+    std::string format_string{};
+    while (Current().Type != Lexer::TokenType::str) {
+        format_string += Current().Literal;
+        Advance();
+        parseExpression();
+        Advance();
+        if (MatchCurrentToken(Lexer::TokenType::format)) {
+            format_string += '%';
+            AssertCurrentToken(Lexer::TokenType::id);
+            format_string += Current().Literal;
+        } else {
+            format_string += "%d";
+        }
+    }
+    format_string += Current().Literal;
+    vm.AddInstruction({
+        .Type = vm::ByteCodeType::Out,
+        .LoadedData = std::make_unique<vm::StringData>(format_string)
+    });
+
+}
+
 void Parser::Parser::parseStatement() {
     using enum Lexer::TokenType;
     switch (Current().Type) {
@@ -280,9 +308,8 @@ void Parser::Parser::parseStatement() {
                 parseAssign();
             } else {
                 logger.Log<Log::Level::Warning>("parsing something as an expression statement.\n"
-                                            "this shouldn't happen.");
+                    "this shouldn't happen.");
                 parseExpression();
-
             }
             break;
         case label:
@@ -292,13 +319,14 @@ void Parser::Parser::parseStatement() {
         case If:
             parseIf();
             break;
+        case Out:
+            parseOut();
+            break;
 
         default:
             logger.Log<Log::Level::Warning>("parsing something as an expression statement.\n"
-                                            "this shouldn't happen.");
+                "this shouldn't happen.");
             parseExpression();
-
-
     }
 }
 
