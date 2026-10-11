@@ -20,7 +20,7 @@ namespace vm {
         SaveToMem,
         // keywords
         Goto,
-        IfSoGoTo,
+        IfNotSoGoTo,
         Out,
         In,
         // operators
@@ -56,10 +56,6 @@ namespace vm {
     struct UintData: BytecodeData {
         uint64_t s;
         UintData(uint64_t q): s(q) {}
-    };
-    struct SoElseData: BytecodeData {
-        uint64_t so, otherwise;
-        SoElseData(uint64_t a, uint64_t b) : so(a), otherwise(b) {}
     };
 
 

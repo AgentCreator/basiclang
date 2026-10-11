@@ -26,16 +26,14 @@ namespace Parser {
 
         [[nodiscard]] Lexer::Token Peek() const;
 
-        /// advances the lexer and yields the current token.
         Lexer::Token Advance();
 
-        /// advances if the current token is of the given type, returns false otherwise
         bool MatchCurrentToken(Lexer::TokenType);
 
         void AssertCurrentToken(Lexer::TokenType t) const;
 
+        void AssertPeekToken(Lexer::TokenType t) const;
 
-        /// advances if the peek token is of the given type, returns false otherwise
         bool MatchPeekToken(Lexer::TokenType);
 
     public:
@@ -44,7 +42,6 @@ namespace Parser {
 
         void prefixParse();
 
-        void parseInfix();
 
         ast::Precedence peekPrecedence() const;
 
@@ -61,7 +58,11 @@ namespace Parser {
 
         void parseLabel();
 
+        void parseIf();
+
         void parseStatement();
+
+        void parseProgram();
 
         explicit Parser(Lexer::Lexer
             &lexer) : m_Lexer(lexer) {

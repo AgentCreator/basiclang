@@ -5,6 +5,7 @@
 #include "bytecode.h"
 
 #include <ranges>
+#include <string>
 
 
 void vm::Vm::AddInstruction(ByteCodeInstruction i) {
@@ -19,7 +20,7 @@ void vm::Vm::AddInstruction(ByteCodeType i) {
 }
 
 void vm::Vm::AddLabel(uint64_t name) {
-    m_Labels[name] = m_Code.size()-1;
+    m_Labels[name] = m_Code.size();
 }
 
 void vm::Vm::Run() const {
@@ -34,6 +35,8 @@ void vm::Vm::Run() const {
 
 
     for (int idx = 0; idx < m_Code.size(); idx++) {
+
+
         const auto &instruction = m_Code[idx];
         switch (instruction.Type) {
             case ByteCodeType::LoadConst: {
@@ -55,17 +58,19 @@ void vm::Vm::Run() const {
             break;
             case ByteCodeType::Goto: {
                 auto& [val] = static_cast<const UintData &>(*instruction.LoadedData);
-                idx = m_Labels.at(val);
+                idx = m_Labels.at(val)-1;
                 // std::cout << "Went to " << val << '\n';
 
             }
             break;
-            case ByteCodeType::IfSoGoTo: {
-                auto& [so, els] = static_cast<const SoElseData &>(*instruction.LoadedData);
+            case ByteCodeType::IfNotSoGoTo: {
+                auto& [ so ] = static_cast<const UintData &>(*instruction.LoadedData);
                 auto condition = GetBack();
+
+
                 // std::cout << "is " << condition << " == 0? if so, go to " << so << ", else " << els << '\n';
-                if (condition == 0) idx = m_Labels.at(so);
-                else idx = m_Labels.at(els);
+                if (condition) idx = m_Labels.at(so)-1; // if
+
             }
             break;
             case ByteCodeType::Out: {
@@ -81,6 +86,7 @@ void vm::Vm::Run() const {
             case ByteCodeType::Add: {
                 auto b = GetBack();
                 auto a = GetBack();
+
 
                 stack.push_back(a + b);
             }
@@ -124,6 +130,8 @@ void vm::Vm::Run() const {
                 auto b = GetBack();
                 auto a = GetBack();
                 BigInt c = a-b;
+                std::string debug_str3 = std::to_string(c.sign());
+
                 stack.push_back(c.sign());
             }
             break;

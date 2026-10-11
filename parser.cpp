@@ -40,6 +40,15 @@ namespace Parser {
                                       static_cast<int>(Current().Type)
         );
     }
+    void Parser::AssertPeekToken(Lexer::TokenType t) const {
+        if (auto cur = Peek(); cur.Type == t) {
+            return;
+        }
+        logger.Log<Log::Level::Error>("Expected a token of {} type, a {} found",
+                                      static_cast<int>(t),
+                                      static_cast<int>(Peek().Type)
+        );
+    }
 
     bool Parser::MatchPeekToken(Lexer::TokenType t) {
         if (auto peek = Current(); peek.Type == t) {
@@ -111,6 +120,7 @@ void Parser::Parser::runInstructionFromTokenType(Lexer::TokenType t) {
             vm.AddInstruction(vm::ByteCodeType::Cmp);
             break;
         default:
+
     }
 }
 
@@ -124,7 +134,6 @@ void Parser::Parser::parseExpression(ast::Precedence precedence) {
         parseExpression(prec);
         runInstructionFromTokenType(op.Type);
     }
-
 }
 
 void Parser::Parser::prefixParse() {
@@ -160,11 +169,16 @@ void Parser::Parser::prefixParse() {
             vm.AddInstruction(vm::ByteCodeType::Multiply);
         }
         break;
+        case Lexer::TokenType::lPar: {
+            Advance();
+            parseExpression();
+            AssertPeekToken(Lexer::TokenType::rPar);
+            Advance();
+        } break;
         default:
             logger.Log<Log::Level::Error>("Unknown Expression");
     }
 }
-
 
 
 uint64_t Parser::Parser::AddLabel(std::string_view name) {
@@ -184,8 +198,7 @@ void Parser::Parser::parseGoto() {
     AssertCurrentToken(Lexer::TokenType::Goto);
     Advance();
     auto tok = Current();
-    Advance();
-    if (tok.Type != Lexer::TokenType::id && tok.Type != Lexer::TokenType::number) {
+    if (tok.Type != Lexer::TokenType::id) {
         logger.Log<Log::Level::Error>(
             "Goto to a weird label: `{}`. must be either an id or a number", tok.Literal);
     }
@@ -194,15 +207,17 @@ void Parser::Parser::parseGoto() {
         .Type = vm::ByteCodeType::Goto,
         .LoadedData = std::make_unique<vm::UintData>(labelID),
     });
-    AssertCurrentToken(Lexer::TokenType::newline);
 }
 
 void Parser::Parser::parseAssign() {
     AssertCurrentToken(Lexer::TokenType::id);
     auto name = Current();
     auto nameID = AddVar(name.Literal);
+    Advance();
     AssertCurrentToken(Lexer::TokenType::equals);
     Advance();
+
+
     parseExpression();
     vm.AddInstruction({
         .Type = vm::ByteCodeType::SaveToMem,
@@ -221,6 +236,38 @@ void Parser::Parser::parseLabel() {
     parseStatement();
 }
 
+void Parser::Parser::parseIf() {
+    static int counter = 0;
+    // these characters specifically because they can't be used in a label, so there are no overlaps
+    constexpr char def_name[] = "(^-^)";
+    std::string name = def_name;
+    name.append(std::to_string(counter++));
+    auto label = AddLabel(name);
+    AssertCurrentToken(Lexer::TokenType::If);
+    Advance();
+    AssertCurrentToken(Lexer::TokenType::lPar);
+    Advance();
+    parseExpression();
+    AssertPeekToken(Lexer::TokenType::rPar);
+    Advance();
+    Advance();
+
+
+    /*
+     * constructing this thingger:
+     * if(!<cond>) goto <1>
+     * <expr>
+     * <1>:
+     *
+     */
+
+    vm.AddInstruction({
+        .Type = vm::ByteCodeType::IfNotSoGoTo,
+        .LoadedData = std::make_unique<vm::UintData>(label),
+    });
+    parseStatement();
+    vm.AddLabel(label);
+}
 
 void Parser::Parser::parseStatement() {
     using enum Lexer::TokenType;
@@ -231,15 +278,36 @@ void Parser::Parser::parseStatement() {
         case id:
             if (Peek().Type == equals) {
                 parseAssign();
+            } else {
+                logger.Log<Log::Level::Warning>("parsing something as an expression statement.\n"
+                                            "this shouldn't happen.");
+                parseExpression();
+
             }
             break;
         case label:
             parseLabel();
             break;
 
+        case If:
+            parseIf();
+            break;
+
         default:
+            logger.Log<Log::Level::Warning>("parsing something as an expression statement.\n"
+                                            "this shouldn't happen.");
+            parseExpression();
 
 
+    }
+}
 
+void Parser::Parser::parseProgram() {
+    while (Current().Type != Lexer::TokenType::eof) {
+        parseStatement();
+        if (Peek().Type == Lexer::TokenType::eof) break;
+        Advance();
+        AssertCurrentToken(Lexer::TokenType::newline);
+        Advance();
     }
 }

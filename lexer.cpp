@@ -190,7 +190,7 @@ tokenize:
 
 Lexer::Token Lexer::Lexer::Next() {
     int lineBatch = 0;
-    std::optional<Token> token = Peek(&lineBatch);
+    std::optional token = Peek(&lineBatch);
     m_Line += lineBatch;
     if (!token) return Token{.Type = TokenType::eof, .Literal = "", .Line = m_Line};
     Token rawToken = *token;
