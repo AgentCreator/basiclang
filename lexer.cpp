@@ -3,7 +3,7 @@
 //
 
 #include <string_view>
-#include <vector>
+// #include <vector>
 #include <ranges>
 
 #include "logger.h"
@@ -16,35 +16,35 @@ namespace Lexer {
 }
 
 
-namespace Lexer::Labels {
-    std::vector<Label> Search(std::string_view source) {
-        std::vector<Label> result{};
-        for (auto line: source
-                        | std::views::split('\n')
-                        | std::views::transform([](const auto a) {
-                            return std::string_view(a);
-                        })) {
-            while (!line.empty() and std::isspace(line[0])) {
-                line.remove_prefix(1);
-            }
-            if (line.empty()) continue;
-
-            if (line[0] == '"') continue;
-            const char *position = line.data();
-            while (!line.empty() && !std::isspace(line[0]) && line[0] != ':' && line[0] != '"' && line[0] != '(') {
-                line.remove_prefix(1);
-            }
-            if (line.empty()) continue;
-            if (line[0] != ':') continue;
-            const char *continuation = line.substr(1).data();
-            Label label{position, continuation};
-            logger.Log<Log::Level::Debug>("Found Label {}", label);
-            result.emplace_back(label);
-        }
-
-        return result;
-    }
-}
+// namespace Lexer::Labels {
+//     std::vector<Label> Search(std::string_view source) {
+//         std::vector<Label> result{};
+//         for (auto line: source
+//                         | std::views::split('\n')
+//                         | std::views::transform([](const auto a) {
+//                             return std::string_view(a);
+//                         })) {
+//             while (!line.empty() and std::isspace(line[0])) {
+//                 line.remove_prefix(1);
+//             }
+//             if (line.empty()) continue;
+//
+//             if (line[0] == '"') continue;
+//             const char *position = line.data();
+//             while (!line.empty() && !std::isspace(line[0]) && line[0] != ':' && line[0] != '"' && line[0] != '(') {
+//                 line.remove_prefix(1);
+//             }
+//             if (line.empty()) continue;
+//             if (line[0] != ':') continue;
+//             const char *continuation = line.substr(1).data();
+//             Label label{position, continuation};
+//             logger.Log<Log::Level::Debug>("Found Label {}", label);
+//             result.emplace_back(label);
+//         }
+//
+//         return result;
+//     }
+// }
 
 std::string_view stripWhitespace(std::string_view s) {
     std::string_view result = s;
@@ -62,6 +62,7 @@ Lexer::Token Lexer::Lexer::makeToken(TokenType t, std::string_view s) const {
 
 /// @return the length of the number
 static constexpr int makeNumber(std::string_view source) {
+
     int res = 0;
     while (!source.empty() && isdigit(source[0])) {
         res++;
@@ -111,7 +112,7 @@ static constexpr Lexer::Token makeString(std::string_view source) {
 }
 
 
-constexpr std::optional<Lexer::Token> Lexer::Lexer::Peek(int *lineBatch) const {
+std::optional<Lexer::Token> Lexer::Lexer::Peek(int *lineBatch) const {
     auto source = m_Source;
 
 tokenize:
@@ -123,7 +124,7 @@ tokenize:
         case '+': return makeToken(TokenType::plus, source.substr(0, 1));
         case '-': return makeToken(TokenType::minus, source.substr(0, 1));
         case '*': return makeToken(TokenType::asterisk, source.substr(0, 1));
-        case '/': return makeToken(TokenType::slash, source.substr(0, 1));
+        // case '/': return makeToken(TokenType::slash, source.substr(0, 1));
         case '=': return makeToken(TokenType::equals, source.substr(0, 1));
         case '(': return makeToken(TokenType::lPar, source.substr(0, 1));
         case ')': return makeToken(TokenType::rPar, source.substr(0, 1));
@@ -165,9 +166,10 @@ tokenize:
                 return res;
             }
             Token token = makeToken(TokenType::id, source.substr(0, makeId(source)));
-            if (auto end = token.Literal.end(); end != nullptr && *end == ':') {
-                source = source.substr(token.Literal.size() + 1);
-                goto tokenize;
+            if (const auto end = token.Literal.end(); end != nullptr && *end == ':') {
+                return makeToken(TokenType::label, source.substr(0, token.Literal.size()+1));
+                // source = source.substr(token.Literal.size() + 1);
+                // goto tokenize;
             }
             static constexpr std::array keywords{
                 std::make_tuple(TokenType::Goto, "goto"),

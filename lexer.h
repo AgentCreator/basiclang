@@ -19,26 +19,7 @@ namespace Lexer::Labels {
     };
 
 
-    ///
-    /// searches for labels in a source string.
-    /// labels in our language are quite simple.
-    /// they follow these rules:
-    /// 1. they shall be the first thing on a line
-    /// 2. they shall be followed by a colon
-    /// example:
-    /// ```
-    /// a = 0
-    /// loop: a += 1
-    /// out a
-    /// if(a < 5) goto loop
-    /// ```
-    /// output:
-    /// 1
-    /// 2
-    /// 3
-    /// 4
-    /// they are searched for separately because its annoying to jump to places in a single pass interpreter.
-    std::vector<Label> Search(std::string_view source);
+
 }
 
 template<>
@@ -58,7 +39,6 @@ namespace Lexer {
         plus,
         minus,
         asterisk,
-        slash,
         equals,
         lPar,
         rPar,
@@ -88,6 +68,7 @@ namespace Lexer {
         colon,
         format, // the :: operator, used in out strings and in strings.
         newline,
+        label,
     };
 
     struct Token {
@@ -103,17 +84,17 @@ namespace Lexer {
     class Lexer {
         std::string_view m_Source;
         size_t m_Line = 1;
-        int64_t m_Parenthesis = 0; // for balancing parenthesis'. Used for multiline stuff.
-        int64_t m_Interpolations = 0; // for making sure you can start a string there.
-        std::vector<Labels::Label> m_Labels{};
+        int m_Parenthesis = 0; // for balancing parenthesis'. Used for multiline stuff.
+        int m_Interpolations = 0; // for making sure you can start a string there.
 
         [[nodiscard]] Token makeToken(TokenType t, std::string_view s) const;
 
     public:
-        explicit Lexer(std::string_view source) : m_Source(source), m_Labels(Labels::Search(source)) {
+        // ReSharper disable once CppNonExplicitConvertingConstructor
+        Lexer(std::string_view source) : m_Source(source) {
         }
 
-        [[nodiscard]] constexpr std::optional<Token> Peek(int *lineBatch = nullptr) const;
+        [[nodiscard]] std::optional<Token> Peek(int *lineBatch = nullptr) const;
 
         std::optional<Token> Next();
     };

@@ -33,7 +33,7 @@ namespace Log {
 
         template<Level Level, typename... Args>
         void Log(std::format_string<Args...> fmt, Args &&... args) const {
-            if constexpr  (Level == Log::Level::Error) {
+            if constexpr (Level == Log::Level::Error) {
                 throw std::runtime_error(std::format(fmt, std::forward<Args>(args)...));
             }
 
