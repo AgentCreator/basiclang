@@ -112,12 +112,12 @@ static constexpr Lexer::Token makeString(std::string_view source) {
 }
 
 
-std::optional<Lexer::Token> Lexer::Lexer::Peek(int *lineBatch) const {
+Lexer::Token Lexer::Lexer::Peek(int *lineBatch) const {
     auto source = m_Source;
 
 tokenize:
     source = stripWhitespace(source);
-    if (source.empty()) return std::nullopt;
+    if (source.empty()) return Token{.Type = TokenType::eof, .Literal = "", .Line = m_Line};
 
 
     switch (const char c = source[0]; c) {
@@ -129,6 +129,7 @@ tokenize:
         case '(': return makeToken(TokenType::lPar, source.substr(0, 1));
         case ')': return makeToken(TokenType::rPar, source.substr(0, 1));
         case '%': return makeToken(TokenType::percent, source.substr(0, 1));
+        case '/': return makeToken(TokenType::slash, source.substr(0, 1));
         case '|': return makeToken(TokenType::pipe, source.substr(0, 1));
         case '&': return makeToken(TokenType::amp, source.substr(0, 1));
         case ':': return makeToken(TokenType::colon, source.substr(0, 1));
@@ -184,14 +185,14 @@ tokenize:
         }
     }
 
-    return std::nullopt;
+    return Token{.Type = TokenType::eof, .Literal = "", .Line = m_Line};
 }
 
-std::optional<Lexer::Token> Lexer::Lexer::Next() {
+Lexer::Token Lexer::Lexer::Next() {
     int lineBatch = 0;
     std::optional<Token> token = Peek(&lineBatch);
     m_Line += lineBatch;
-    if (!token) return std::nullopt;
+    if (!token) return Token{.Type = TokenType::eof, .Literal = "", .Line = m_Line};
     Token rawToken = *token;
     if (rawToken.Type == TokenType::lPar) m_Parenthesis++;
     if (rawToken.Type == TokenType::rPar) m_Parenthesis--;

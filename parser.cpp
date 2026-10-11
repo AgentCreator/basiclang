@@ -8,13 +8,13 @@ namespace Parser {
     static Log::Logger logger{"Parser"};
 
     Lexer::Token Parser::Current() const {
-        if (!m_Current) logger.Log<Log::Level::Error>("Empty Source");
-        return *m_Current;
+        // if (!m_Current) logger.Log<Log::Level::Error>("Empty Source");
+        return m_Current;
     }
 
     Lexer::Token Parser::Peek() const {
-        if (!m_Peek) logger.Log<Log::Level::Error>("Empty Source");
-        return *m_Peek;
+        // if (!m_Peek) logger.Log<Log::Level::Error>("Empty Source");
+        return m_Peek;
     }
 
     Lexer::Token Parser::Advance() {
@@ -49,19 +49,123 @@ namespace Parser {
 
         return false;
     }
+}
 
-    void Parser::prefixParse(Lexer::TokenType) {
-    }
-
-    void Parser::parseExpression() {
+ast::Precedence precedenceOf(Lexer::Token t) {
+    switch (t.Type) {
+        case Lexer::TokenType::plus:
+        case Lexer::TokenType::minus:
+            return ast::Precedence::add;
+        case Lexer::TokenType::asterisk:
+        case Lexer::TokenType::percent:
+        case Lexer::TokenType::slash:
+        case Lexer::TokenType::lShift:
+        case Lexer::TokenType::rShift:
+        case Lexer::TokenType::caret:
+        case Lexer::TokenType::pipe:
+        case Lexer::TokenType::amp:
+            return ast::Precedence::mul;
+        case Lexer::TokenType::cmp:
+            return ast::Precedence::cmp;
+        default: return ast::Precedence::lowest;
     }
 }
 
-// void Parser::Parser::prefixParse(Lexer::TokenType t) {
-//     switch (t) {
-//
-//     }
-// }
+ast::Precedence Parser::Parser::peekPrecedence() const {
+    return precedenceOf(Peek());
+}
+
+void Parser::Parser::runInstructionFromTokenType(Lexer::TokenType t) {
+    switch (t) {
+        case Lexer::TokenType::plus:
+            vm.AddInstruction(vm::ByteCodeType::Add);
+            break;
+        case Lexer::TokenType::minus:
+            vm.AddInstruction(vm::ByteCodeType::Minus);
+            break;
+        case Lexer::TokenType::asterisk:
+            vm.AddInstruction(vm::ByteCodeType::Multiply);
+            break;
+        case Lexer::TokenType::slash:
+            vm.AddInstruction(vm::ByteCodeType::Div);
+            break;
+        case Lexer::TokenType::percent:
+            vm.AddInstruction(vm::ByteCodeType::Modulo);
+            break;
+        case Lexer::TokenType::caret:
+            vm.AddInstruction(vm::ByteCodeType::Bitxor);
+            break;
+        case Lexer::TokenType::pipe:
+            vm.AddInstruction(vm::ByteCodeType::Bitor);
+            break;
+        case Lexer::TokenType::amp:
+            vm.AddInstruction(vm::ByteCodeType::Bitand);
+            break;
+        case Lexer::TokenType::lShift:
+            vm.AddInstruction(vm::ByteCodeType::Lshift);
+            break;
+        case Lexer::TokenType::rShift:
+            vm.AddInstruction(vm::ByteCodeType::Rshift);
+            break;
+        case Lexer::TokenType::cmp:
+            vm.AddInstruction(vm::ByteCodeType::Cmp);
+            break;
+        default:
+    }
+}
+
+void Parser::Parser::parseExpression(ast::Precedence precedence) {
+    prefixParse();
+    while (precedence < peekPrecedence()) {
+        Advance();
+        auto op = Current();
+        auto prec = precedenceOf(op);
+        Advance();
+        parseExpression(prec);
+        runInstructionFromTokenType(op.Type);
+    }
+
+}
+
+void Parser::Parser::prefixParse() {
+    switch (Current().Type) {
+        case Lexer::TokenType::id:
+            vm.AddInstruction({
+                .Type = vm::ByteCodeType::LoadMem,
+                .LoadedData = std::make_unique<vm::UintData>(AddVar(Current().Literal)),
+            });
+
+            break;
+        case Lexer::TokenType::number: {
+            vm::BigInt num(Current().Literal);
+            vm.AddInstruction({
+                .Type = vm::ByteCodeType::LoadConst,
+                .LoadedData = std::make_unique<vm::BigIntData>(num),
+            });
+        }
+        break;
+        case Lexer::TokenType::bitNot: {
+            Advance();
+            parseExpression(ast::Precedence::prefix);
+            vm.AddInstruction(vm::ByteCodeType::Bitnot);
+        }
+        break;
+        case Lexer::TokenType::minus: {
+            Advance();
+            parseExpression(ast::Precedence::prefix);
+            vm.AddInstruction({
+                .Type = vm::ByteCodeType::LoadConst,
+                .LoadedData = std::make_unique<vm::BigIntData>(-1),
+            });
+            vm.AddInstruction(vm::ByteCodeType::Multiply);
+        }
+        break;
+        default:
+            logger.Log<Log::Level::Error>("Unknown Expression");
+    }
+}
+
+
 
 uint64_t Parser::Parser::AddLabel(std::string_view name) {
     if (labels.contains(name)) return labels.at(name);
@@ -132,6 +236,7 @@ void Parser::Parser::parseStatement() {
         case label:
             parseLabel();
             break;
+
         default:
 
 

@@ -16,8 +16,8 @@
 namespace Parser {
     class Parser {
         Lexer::Lexer &m_Lexer;
-        std::optional<Lexer::Token> m_Current;
-        std::optional<Lexer::Token> m_Peek;
+        Lexer::Token m_Current;
+        Lexer::Token m_Peek;
 
         std::unordered_map<std::string_view, uint64_t> labels;
         std::unordered_map<std::string_view, uint64_t> vars;
@@ -42,9 +42,15 @@ namespace Parser {
 
         vm::Vm vm{};
 
-        void prefixParse(Lexer::TokenType);
+        void prefixParse();
 
-        void parseExpression();
+        void parseInfix();
+
+        ast::Precedence peekPrecedence() const;
+
+        void runInstructionFromTokenType(Lexer::TokenType t);
+
+        void parseExpression(ast::Precedence precedence = ast::Precedence::lowest);
 
         uint64_t AddLabel(std::string_view name);
         uint64_t AddVar(std::string_view name);

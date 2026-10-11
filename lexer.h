@@ -26,6 +26,7 @@ namespace Lexer {
         rShift,
         bitNot,
         caret,
+        slash,
 
         // keywords
         In,
@@ -45,6 +46,8 @@ namespace Lexer {
         format, // the ! operator, used in out strings and in strings.
         newline,
         label,
+        eof,
+
     };
 
     struct Token {
@@ -70,9 +73,9 @@ namespace Lexer {
         Lexer(std::string_view source) : m_Source(source) {
         }
 
-        [[nodiscard]] std::optional<Token> Peek(int *lineBatch = nullptr) const;
+        [[nodiscard]] Token Peek(int *lineBatch = nullptr) const;
 
-        std::optional<Token> Next();
+        Token Next();
     };
 }
 

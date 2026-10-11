@@ -14,7 +14,6 @@ namespace ast {
         add,
         mul,
         prefix,
-        format,
     };
 }
 
