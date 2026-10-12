@@ -185,7 +185,7 @@ void vm::Vm::RunOutput(std::vector<BigInt> &stack, std::string_view format) {
         if (ch == '%' && isSpecial) {
             result += '%';
             isSpecial = false;
-        } else if (ch == '%') {
+        } else if (ch == '%' && !isSpecial) {
             isSpecial = true;
         } else if (ch == 's' && isSpecial) {
             auto n = GetBack();

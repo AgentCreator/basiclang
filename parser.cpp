@@ -315,6 +315,42 @@ void Parser::Parser::parseOut() {
 
 }
 
+void Parser::Parser::parseIn() {
+    AssertCurrentToken(Lexer::TokenType::In);
+    Advance();
+    std::string format_string{};
+    std::vector<std::string_view> names{};
+    while (Current().Type != Lexer::TokenType::str) {
+        std::string lit{Current().Literal};
+        lit = std::regex_replace(lit, std::regex("%"), "%%");
+        format_string += lit;
+        Advance();
+        AssertCurrentToken(Lexer::TokenType::id);
+        auto id = Current();
+        Advance();
+        names.emplace_back(id.Literal);
+        if (MatchCurrentToken(Lexer::TokenType::format)) {
+            format_string += "%";
+            AssertCurrentToken(Lexer::TokenType::id);
+            format_string += Current().Literal;
+        } else {
+            format_string += "%d";
+        }
+    }
+    vm.AddInstruction({
+        .Type = vm::ByteCodeType::In,
+        .LoadedData = std::make_unique<vm::StringData>(format_string)
+    });
+    for (auto name : names | std::ranges::views::reverse) {
+        auto nameID = AddVar(name);
+        vm.AddInstruction({
+            .Type = vm::ByteCodeType::SaveToMem,
+            .LoadedData = std::make_unique<vm::UintData>(nameID),
+        });
+    }
+}
+
+
 void Parser::Parser::parseStatement() {
     using enum Lexer::TokenType;
     switch (Current().Type) {
@@ -339,6 +375,9 @@ void Parser::Parser::parseStatement() {
             break;
         case Out:
             parseOut();
+            break;
+        case In:
+            parseIn();
             break;
 
         default:

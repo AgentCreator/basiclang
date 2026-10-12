@@ -158,7 +158,7 @@ tokenize:
             if (std::isdigit(c)) {
                 return makeToken(TokenType::number, source.substr(0, makeNumber(source)));
             }
-            if (c == '"' || (c == '}' && m_Interpolations != 0)) {
+            if (c == '"' || c == '}') {
                 auto res = makeString(source);
                 res.Line = m_Line;
                 return res;
@@ -196,8 +196,6 @@ Lexer::Token Lexer::Lexer::Next() {
     Token rawToken = *token;
     if (rawToken.Type == TokenType::lPar) m_Parenthesis++;
     if (rawToken.Type == TokenType::rPar) m_Parenthesis--;
-    if (rawToken.Type == TokenType::interpolation) m_Interpolations++;
-    if (rawToken.Type == TokenType::str && rawToken.Literal[0] == '}') m_Interpolations--;
 
     m_Source.remove_prefix(rawToken.Literal.end() - m_Source.begin());
 
