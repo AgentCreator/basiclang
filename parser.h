@@ -12,6 +12,7 @@
 #include "bytecode.h"
 #include "lexer.h"
 #include "logger.h"
+#include <algorithm>
 
 namespace Parser {
     class Parser {

@@ -10,7 +10,7 @@ int main() {
     //         "loop: a = a + 1\n"
     //         "if((a <=> 10) + 1) goto loop\n"
     //         "a";
-    constexpr std::string_view source = "out \"Hello, {2+2}!\"";
+    constexpr std::string_view source = "out \"Hello, {2+2} %! {2+3}!\"";
 
     Lexer::Lexer l = source;
     Parser::Parser p{l};

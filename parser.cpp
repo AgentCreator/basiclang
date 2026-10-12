@@ -4,6 +4,10 @@
 
 #include "parser.h"
 
+#include <regex>
+#include <__ranges/reverse_view.h>
+
+
 namespace Parser {
     static Log::Logger logger{"Parser"};
 
@@ -195,9 +199,6 @@ uint64_t Parser::Parser::AddVar(std::string_view name) {
 }
 
 void Parser::Parser::parseGoto() {
-    // if (!MatchCurrentToken(Lexer::TokenType::Goto)) {
-    //     logger.Log<Log::Level::Error>("Goto ran in wrong place");
-    // }
     AssertCurrentToken(Lexer::TokenType::Goto);
     Advance();
     auto tok = Current();
@@ -276,10 +277,16 @@ void Parser::Parser::parseOut() {
     AssertCurrentToken(Lexer::TokenType::Out);
     Advance();
     std::string format_string{};
+    std::vector code = std::move(vm.m_Code);
+    std::deque<std::vector<vm::ByteCodeInstruction>> outStuff{};
     while (Current().Type != Lexer::TokenType::str) {
-        format_string += Current().Literal;
+        std::string lit{Current().Literal};
+        lit = std::regex_replace(lit, std::regex("%"), "%%");
+        format_string += lit;
         Advance();
         parseExpression();
+        std::vector res = std::move(vm.m_Code);
+        outStuff.emplace_back(std::move(res));
         Advance();
         if (MatchCurrentToken(Lexer::TokenType::format)) {
             format_string += '%';
@@ -290,6 +297,17 @@ void Parser::Parser::parseOut() {
         }
     }
     format_string += Current().Literal;
+    vm.m_Code = std::move(code);
+
+    for (auto it = outStuff.rbegin(); it != outStuff.rend(); ++it) {
+        vm.m_Code.insert(
+            vm.m_Code.end(),
+            std::make_move_iterator(it->begin()),
+            std::make_move_iterator(it->end())
+        );
+    }
+
+
     vm.AddInstruction({
         .Type = vm::ByteCodeType::Out,
         .LoadedData = std::make_unique<vm::StringData>(format_string)

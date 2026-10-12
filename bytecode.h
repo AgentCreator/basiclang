@@ -62,16 +62,25 @@ namespace vm {
     struct ByteCodeInstruction {
         ByteCodeType Type;
         std::unique_ptr<BytecodeData> LoadedData;
+        //
+        // ByteCodeInstruction(ByteCodeType Type, std::unique_ptr<BytecodeData> LoadedData)
+        // : Type(Type), LoadedData(std::move(LoadedData)) {}
+        //
+        // ByteCodeInstruction(ByteCodeInstruction&& other) noexcept
+        //     : Type(other.Type), LoadedData(std::move(other.LoadedData)) {}
+        //
+        // ByteCodeInstruction(const ByteCodeInstruction&) = delete;
+        // ByteCodeInstruction& operator=(const ByteCodeInstruction&) = delete;
     };
 
 
     class Vm {
 
-        std::vector<ByteCodeInstruction> m_Code{};
         std::unordered_map<uint64_t, uint64_t> m_Labels{};
 
 
     public:
+        std::vector<ByteCodeInstruction> m_Code{};
 
         void AddInstruction(ByteCodeInstruction);
         void AddInstruction(ByteCodeType);
