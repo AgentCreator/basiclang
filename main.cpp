@@ -1,19 +1,27 @@
+#include <fstream>
+#include <sstream>
+
 #include "logger.h"
 #include "lexer.h"
 #include "parser.h"
 
 
-int main() {
+int main(int argc, char** argv) {
     Log::GlobalLogLevel = Log::Level::Info;
-    constexpr Log::Logger logger{"General"};
-    // constexpr std::string_view source = "a = 0\n"
-    //         "loop: a = a + 1\n"
-    //         "if((a <=> 10) + 1) goto loop\n"
-            // "a";
-    constexpr std::string_view source = "in \"{a} {b}\"\n"
-                                        "out \"{a} + {b} = {a+b}!\n\"";
 
-    Lexer::Lexer l = source;
+    if (argc < 2) {
+        std::println("{} <file_name>", argv[0]);
+        return -1;
+    }
+    std::ifstream file{argv[1]};
+
+
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    std::string source = ss.str();
+    // std::println("{}", source);
+
+    Lexer::Lexer l{source};
     Parser::Parser p{l};
 
     p.parseProgram();
