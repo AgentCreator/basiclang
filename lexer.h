@@ -7,6 +7,7 @@
 
 #include <format>
 #include <vector>
+#include <optional>
 
 
 namespace Lexer {

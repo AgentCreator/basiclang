@@ -6,7 +6,7 @@
 
 #include <ranges>
 #include <string>
-
+#include <print>
 
 void vm::Vm::AddInstruction(ByteCodeInstruction i) {
     m_Code.emplace_back(std::move(i));

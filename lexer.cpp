@@ -166,7 +166,7 @@ tokenize:
                 return res;
             }
             Token token = makeToken(TokenType::id, source.substr(0, makeId(source)));
-            if (const auto end = token.Literal.end(); end != nullptr && *end == ':') {
+            if (token.Literal.ends_with(':')) {
                 return makeToken(TokenType::label, source.substr(0, token.Literal.size()+1));
                 // source = source.substr(token.Literal.size() + 1);
                 // goto tokenize;
