@@ -1,4 +1,4 @@
-out "Hey! Give me a \"number\"! \n"
+out "Hey! Give me a number! \n"
 in "{a}"
 
 i = 0

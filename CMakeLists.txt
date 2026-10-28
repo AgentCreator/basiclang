@@ -5,14 +5,29 @@ set(CMAKE_CXX_STANDARD 26)
 
 # this part is vibecoded
 include(FetchContent)
-foreach(dep multiprecision config assert)
-    FetchContent_Declare(boost_${dep}
-            GIT_REPOSITORY https://github.com{dep}.git
-            GIT_TAG        boost-1.85.0
-            GIT_SHALLOW    ON
-    )
-endforeach()
-FetchContent_MakeAvailable(boost_multiprecision boost_config boost_assert)
+
+FetchContent_Declare(
+        boost_config
+        GIT_REPOSITORY https://github.com/boostorg/config.git
+        GIT_TAG        boost-1.85.0
+        GIT_SHALLOW    ON
+)
+
+FetchContent_Declare(
+        boost_assert
+        GIT_REPOSITORY https://github.com/boostorg/assert.git
+        GIT_TAG        boost-1.85.0
+        GIT_SHALLOW    ON
+)
+
+FetchContent_Declare(
+        boost_multiprecision
+        GIT_REPOSITORY https://github.com/boostorg/multiprecision.git
+        GIT_TAG        boost-1.85.0
+        GIT_SHALLOW    ON
+)
+
+FetchContent_MakeAvailable(boost_config boost_assert boost_multiprecision)
 
 
 add_executable(basiclang main.cpp
@@ -27,11 +42,5 @@ add_executable(basiclang main.cpp
 )
 
 # this part is vibecoded too
-
-target_include_directories(basiclang PRIVATE
-        ${boost_multiprecision_SOURCE_DIR}/include
-        ${boost_config_SOURCE_DIR}/include
-        ${boost_assert_SOURCE_DIR}/include
-)
-
 target_compile_definitions(basiclang PRIVATE BOOST_MP_STANDALONE)
+target_link_libraries(basiclang PRIVATE boost_multiprecision boost_config boost_assert)
