@@ -13,6 +13,8 @@
 #include "lexer.h"
 #include "logger.h"
 #include <algorithm>
+#include <regex>
+#include <ranges>
 
 namespace Parser {
     class Parser {
