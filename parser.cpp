@@ -39,9 +39,10 @@ namespace Parser {
         if (auto cur = Current(); cur.Type == t) {
             return;
         }
-        logger.Log<Log::Level::Error>("Expected a token of {} type, a {} found",
+        logger.Log<Log::Level::Error>("Expected a token of {} type, a {} found (on line {})",
                                       static_cast<int>(t),
-                                      static_cast<int>(Current().Type)
+                                      static_cast<int>(Current().Type),
+                                      Current().Line
         );
     }
 
@@ -56,7 +57,7 @@ namespace Parser {
     }
 
     bool Parser::MatchPeekToken(Lexer::TokenType t) {
-        if (auto peek = Current(); peek.Type == t) {
+        if (auto peek = Peek(); peek.Type == t) {
             Advance();
             return true;
         }
@@ -182,6 +183,10 @@ void Parser::Parser::prefixParse() {
             Advance();
         }
         break;
+        case Lexer::TokenType::newline:
+            Advance();
+            prefixParse();
+            break;
         default:
             logger.Log<Log::Level::Error>("Unknown Expression");
     }
@@ -378,6 +383,10 @@ void Parser::Parser::parseStatement() {
             break;
         case In:
             parseIn();
+            break;
+        case newline:
+            Advance();
+            parseStatement();
             break;
 
         default:

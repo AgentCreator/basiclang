@@ -104,6 +104,8 @@ static constexpr Lexer::Token makeString(std::string_view source) {
         }
         if (result[0] == '\\' && !escaped) {
             escaped = true;
+        } else if (escaped) {
+            escaped = false;
         }
         result.remove_prefix(1);
     }
@@ -116,7 +118,7 @@ Lexer::Token Lexer::Lexer::Peek(int *lineBatch) const {
     auto source = m_Source;
 
 tokenize:
-    source = stripWhitespace(source);
+    // source = stripWhitespace(source);
     if (source.empty()) return Token{.Type = TokenType::eof, .Literal = "", .Line = m_Line};
 
 
@@ -189,6 +191,7 @@ tokenize:
 }
 
 Lexer::Token Lexer::Lexer::Next() {
+    m_Source = stripWhitespace(m_Source);
     int lineBatch = 0;
     std::optional token = Peek(&lineBatch);
     m_Line += lineBatch;

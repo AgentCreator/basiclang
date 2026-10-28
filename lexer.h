@@ -61,7 +61,7 @@ namespace Lexer {
     };
 
     class Lexer {
-        std::string_view m_Source;
+         std::string_view m_Source;
         size_t m_Line = 1;
         int m_Parenthesis = 0; // for balancing parenthesis'. Used for multiline stuff.
         int m_Interpolations = 0; // for making sure you can start a string there.
@@ -70,7 +70,7 @@ namespace Lexer {
 
     public:
         // ReSharper disable once CppNonExplicitConvertingConstructor
-        Lexer(std::string_view source) : m_Source(source) {
+        Lexer( std::string_view source) : m_Source(source) {
         }
 
         [[nodiscard]] Token Peek(int *lineBatch = nullptr) const;

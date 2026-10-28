@@ -7,13 +7,17 @@
 
 
 int main(int argc, char** argv) {
-    Log::GlobalLogLevel = Log::Level::Info;
+    Log::GlobalLogLevel = Log::Level::Error;
 
+
+
+    const char* name = argv[1];
     if (argc < 2) {
+        // name = "/Users/sashko/mystuff/progfrog/cp/basiclang/maxNumDemo.basiclang";
         std::println("{} <file_name>", argv[0]);
         return -1;
     }
-    std::ifstream file{argv[1]};
+    std::ifstream file{name};
 
 
     std::ostringstream ss;
@@ -22,6 +26,14 @@ int main(int argc, char** argv) {
     // std::println("{}", source);
 
     Lexer::Lexer l{source};
+
+    // auto clone = l;
+    // Lexer::Token t = clone.Next();
+    // while (t.Type != Lexer::TokenType::eof) {
+    //     std::println("{}", t.Description());
+    //     t = clone.Next();
+    // }
+
     Parser::Parser p{l};
 
     p.parseProgram();

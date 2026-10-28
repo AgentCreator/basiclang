@@ -1,0 +1,14 @@
+out "Hey! Give me a \"number\"! \n"
+in "{a}"
+
+i = 0
+res = 0
+
+loop:
+    res = res + i
+    i = i + 1
+    if( (a<=>i) + 1 ) goto end
+    goto loop
+end:
+
+out "sum of first {a} numbers is {res}.\n"

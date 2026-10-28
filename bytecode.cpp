@@ -40,7 +40,7 @@ void vm::Vm::Run() const {
         const auto &instruction = m_Code[idx];
         switch (instruction.Type) {
             case ByteCodeType::LoadConst: {
-                auto& [val] = static_cast<const BigIntData &>(*instruction.LoadedData);
+                const auto& [val] = static_cast<const BigIntData &>(*instruction.LoadedData);
                 stack.emplace_back(val);
             }
             break;
@@ -67,14 +67,12 @@ void vm::Vm::Run() const {
                 auto& [ so ] = static_cast<const UintData &>(*instruction.LoadedData);
                 auto condition = GetBack();
 
-
-                // std::cout << "is " << condition << " == 0? if so, go to " << so << ", else " << els << '\n';
                 if (condition) idx = m_Labels.at(so)-1; // if
 
             }
             break;
             case ByteCodeType::Out: {
-                auto [s] = static_cast<const StringData &>(*instruction.LoadedData);
+                const auto [s] = static_cast<const StringData &>(*instruction.LoadedData);
                 RunOutput(stack, s);
             }
             break;
@@ -160,6 +158,7 @@ void vm::Vm::Run() const {
 
                 stack.push_back(a ^ b);
             }
+            break;
             case ByteCodeType::Div: {
 
                 auto b = GetBack();
@@ -203,6 +202,9 @@ void vm::Vm::RunOutput(std::vector<BigInt> &stack, std::string_view format) {
             isEscaped = true;
         } else if (isEscaped && ch == 'n') {
             result += '\n';
+            isEscaped = false;
+        } else if (isEscaped && ch == '"') {
+            result += '"';
             isEscaped = false;
         } else if (isEscaped && ch == '\\') {
             result += '\\';

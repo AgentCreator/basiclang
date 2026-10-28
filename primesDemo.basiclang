@@ -1,0 +1,28 @@
+out "Hey! give me a number:\n"
+in "{n}"
+
+i = 2
+table = 0
+
+res = 0
+
+loop:
+    mask = 1 << i
+    if ((table & mask <=> 1)-1) goto increment
+
+    res = res + 1
+    j = i*i
+    prime_removal:
+    if ((j <=> (n-1)) - 1) goto increment
+
+    table = table | (1 << j)
+    j = j + i
+
+    goto prime_removal
+
+
+increment:
+    i = i + 1
+    if ((i <=> n) + 1) goto loop
+
+out "there are {res} primes below {n}."

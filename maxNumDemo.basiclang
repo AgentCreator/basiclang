@@ -1,0 +1,16 @@
+out "|a| = "
+in "{n}"
+
+out "a: "
+
+in "{res}"
+
+i = 1
+loop:
+    in "{num}"
+    if((num <=> res) - 1) res = num
+
+    i = i+1
+    if ((i <=> n) + 1) goto loop
+
+out "\nmax(a) = {res}.\n"
