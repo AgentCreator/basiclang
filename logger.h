@@ -5,6 +5,7 @@
 #ifndef BASICLANG_LOGGER_H
 #define BASICLANG_LOGGER_H
 #include <iostream>
+#include <format>
 #include <print>
 
 // its all in a header file because for some reason when I
